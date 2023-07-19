@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -14,17 +16,25 @@ url = 'https://himkosh.nic.in/eHPOLTIS/PublicReports/wfrmBudgetAllocationbyFD.as
 strt_d = '01/04/2018' 
 end_d = '31/03/2022'
 
+
 # setting up seleium driver
-ops = webdriver.ChromeOptions()
-ops.add_argument("headless")
-web=webdriver.Chrome(options=ops)
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--no-sandbox')
+options.add_argument('--remote-allow-origins=*')
+
+web = webdriver.Chrome(options=options)
 web.get(url)
 
-# 1 second pause to fill data just to not block our ip address ;-)
-time.sleep(1)
+# 3 second pause to fill data just to not block our ip address ;-)
+time.sleep(3)
 
-web.execute_script("document.getElementById('txtFromDate').setAttribute('value', arguments[0])",strt_d)
-time.sleep(1)
+#wait = WebDriverWait(web, 20)  # Adjust the timeout as needed
+#web.execute_script("arguments[0].setAttribute('value', arguments[1])", wait.until(EC.visibility_of_element_located((By.ID, 'txtFromDate'))), strt_d)
+
+
+web.execute_script("document.getElementById('txtFromDate').setAttribute('value', arguments[0])", strt_d)
 web.execute_script("document.getElementById('txtQueryDate').setAttribute('value', arguments[0])",end_d)
 #HOA is by default, so skipping that
 time.sleep(1)
@@ -35,6 +45,8 @@ web.find_element(By.ID,"btnGetdata").click()
 time.sleep(4)
 
 soup = BeautifulSoup(web.page_source, "html.parser")
+
+# Extracting table details
 
 table = soup.find('table')
 
@@ -60,6 +72,6 @@ for row in rows:
 
 # Converting to data frame and storing to data lake (For now Data Lake is my computer C drive ;-) )
 df = pd.DataFrame(data, columns=header)
-df.to_csv('../data/HP_financial_raw_data.csv')
+df.to_csv('$AIRFLOW_HOME/data/HP_financial_raw_data.csv')
 
-# web.quit()
+web.quit()

@@ -2,7 +2,7 @@ import pandas as pd
 import sqlite3
 
 # TRANSFORM
-df = pd.read_csv("../data/HP_financial_raw_data.csv")
+df = pd.read_csv("$AIRFLOW_HOME/data/HP_financial_raw_data.csv")
 
 # Filling Null values in DmdCd
 # df['DmdCd'] = df['DmdCd'].replace('',np.nan) #changed blank DmdCd data first to Nan
@@ -22,9 +22,9 @@ df[['MajorHead','SubMajorHead','MinorHead','SubMinorHead','DetailHead','SubDetai
 df = df.iloc[:,3:]
 
 
-#LOAD
+# Dump to Sqlite3
 
-conn = sqlite3.connect('hp_stat_fscl.db')
+conn = sqlite3.connect('$AIRFLOW_HOME/hp_stat_fscl.db')
 cursor = conn.cursor()
 
 table_name = 'HP_FSCL_DATA'
